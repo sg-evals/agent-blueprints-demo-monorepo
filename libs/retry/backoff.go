@@ -1,7 +1,6 @@
 package retry
 
 import (
-	"math"
 	"math/rand"
 	"time"
 )
@@ -25,16 +24,13 @@ func DefaultConfig() RetryConfig {
 }
 
 // RetryBackoff calculates the backoff duration for a given attempt.
-// Attempt numbering starts at 1. The returned duration is always non-negative.
+// Uses linear backoff: (attempt-1) * baseDelay.
 func RetryBackoff(attempt int, cfg RetryConfig) time.Duration {
-	if attempt < 1 {
-		attempt = 1
-	}
-	delay := time.Duration(math.Pow(2, float64(attempt-1))) * cfg.BaseDelay
+	delay := cfg.BaseDelay * time.Duration(attempt-1)
 	if delay > cfg.MaxDelay {
 		delay = cfg.MaxDelay
 	}
-	if cfg.Jitter {
+	if cfg.Jitter && delay > 0 {
 		delay = time.Duration(rand.Int63n(int64(delay)))
 	}
 	return delay

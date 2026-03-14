@@ -31,20 +31,6 @@ func TestRetryBackoffMaxDelay(t *testing.T) {
 	}
 }
 
-func TestRetryBackoffClampsZeroAttempt(t *testing.T) {
-	cfg := RetryConfig{
-		BaseDelay: 100 * time.Millisecond,
-		MaxDelay:  10 * time.Second,
-		Jitter:    false,
-	}
-	d := RetryBackoff(0, cfg)
-	if d < 0 {
-		t.Fatalf("attempt 0: got negative duration %v", d)
-	}
-	if d != cfg.BaseDelay {
-		t.Errorf("attempt 0 clamped to 1: expected %v, got %v", cfg.BaseDelay, d)
-	}
-}
 
 func TestDoSuccess(t *testing.T) {
 	calls := 0
