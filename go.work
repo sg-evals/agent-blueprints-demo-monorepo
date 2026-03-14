@@ -1,0 +1,19 @@
+go 1.22
+
+use (
+	./apps/api-gateway
+	./apps/auth-service
+	./apps/billing-service
+	./apps/notifications-service
+	./apps/orders-service
+	./apps/search-service
+	./apps/worker-ingest
+	./apps/worker-reconcile
+	./libs/authz
+	./libs/eventbus
+	./libs/featureflags
+	./libs/httpclient
+	./libs/observability
+	./libs/retry
+	./tools/gen_repo
+)

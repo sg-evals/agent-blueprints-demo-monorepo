@@ -1,0 +1,67 @@
+services:
+  - name: api-gateway
+    owner: platform-team
+    tier: 1
+    dependencies:
+      - authz
+      - httpclient
+      - observability
+      - featureflags
+
+  - name: auth-service
+    owner: identity-team
+    tier: 1
+    dependencies:
+      - authz
+      - observability
+
+  - name: billing-service
+    owner: payments-team
+    tier: 1
+    dependencies:
+      - retry
+      - httpclient
+      - eventbus
+      - observability
+
+  - name: orders-service
+    owner: commerce-team
+    tier: 1
+    dependencies:
+      - authz
+      - eventbus
+      - httpclient
+      - observability
+
+  - name: notifications-service
+    owner: engagement-team
+    tier: 2
+    dependencies:
+      - eventbus
+      - retry
+      - httpclient
+      - observability
+
+  - name: search-service
+    owner: discovery-team
+    tier: 2
+    dependencies:
+      - httpclient
+      - observability
+      - featureflags
+
+  - name: worker-ingest
+    owner: data-team
+    tier: 2
+    dependencies:
+      - eventbus
+      - retry
+      - observability
+
+  - name: worker-reconcile
+    owner: payments-team
+    tier: 3
+    dependencies:
+      - retry
+      - eventbus
+      - observability
