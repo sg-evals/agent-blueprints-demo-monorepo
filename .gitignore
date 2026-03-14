@@ -1,0 +1,10 @@
+# Go binaries
+apps/api-gateway/api-gateway
+apps/auth-service/auth-service
+apps/billing-service/billing-service
+apps/notifications-service/notifications-service
+apps/orders-service/orders-service
+apps/search-service/search-service
+apps/worker-ingest/worker-ingest
+apps/worker-reconcile/worker-reconcile
+tools/gen_repo/gen_repo
