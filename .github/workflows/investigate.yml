@@ -1,0 +1,62 @@
+name: Investigate CI Failure
+
+on:
+  workflow_run:
+    workflows: ["CI Fast"]
+    types: [completed]
+
+jobs:
+  investigate:
+    name: Background Agent Investigation
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout agent runtime
+        uses: actions/checkout@v4
+        with:
+          repository: sg-evals/agent-blueprints-demo
+          path: agent
+
+      - name: Fetch CI logs
+        id: logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RUN_ID=${{ github.event.workflow_run.id }}
+          REPO=${{ github.event.workflow_run.repository.full_name }}
+
+          # Download and extract logs
+          gh run view "$RUN_ID" --repo "$REPO" --log > /tmp/ci-log.txt 2>/dev/null || true
+
+          # Extract failing test name (Go test output pattern)
+          FAILING_TEST=$(grep -oP '--- FAIL: \K\S+' /tmp/ci-log.txt | head -1 || echo "unknown")
+          ERROR_MSG=$(grep -A1 'FAIL:' /tmp/ci-log.txt | grep -v 'FAIL:' | head -1 | xargs || echo "Test failed")
+
+          echo "test=$FAILING_TEST" >> "$GITHUB_OUTPUT"
+          echo "error=$ERROR_MSG" >> "$GITHUB_OUTPUT"
+          echo "Failing test: $FAILING_TEST"
+          echo "Error: $ERROR_MSG"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run investigation agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SOURCEGRAPH_ACCESS_TOKEN: ${{ secrets.SOURCEGRAPH_ACCESS_TOKEN }}
+        working-directory: agent
+        run: |
+          chmod +x investigate.sh
+          ./investigate.sh \
+            --repo "${{ github.event.workflow_run.repository.full_name }}" \
+            --test "${{ steps.logs.outputs.test }}" \
+            --error "${{ steps.logs.outputs.error }}" \
+            --sha "${{ github.event.workflow_run.head_sha }}" \
+            --post-comment
